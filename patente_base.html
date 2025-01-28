@@ -189,6 +189,11 @@
             <div>
                 <label for="numQuestions">Numero di Quesiti:</label>
                 <input id="numQuestions" type="number" min="1" max="50" value="20">
+				<label>
+					<input type="checkbox" id="enableRange" onchange="toggleRangeInputs()"> Abilita range
+				</label>
+				<input id="rangeFrom" type="number" min="1" placeholder="DA" disabled>
+				<input id="rangeTo" type="number" min="1" placeholder="A" disabled>
                 <button onclick="generateQuiz()">Genera Esame</button>
             </div>
             <div>
@@ -253,6 +258,12 @@
 			console.log("ID estratti totali:", savedIds);
 			return savedIds;
 		}
+		
+		function toggleRangeInputs() {
+			const enableRange = document.getElementById("enableRange").checked;
+			document.getElementById("rangeFrom").disabled = !enableRange;
+			document.getElementById("rangeTo").disabled = !enableRange;
+		}
 
         function generateQuiz() {
 		
@@ -260,12 +271,33 @@
 			//First Shuffeling Version
 			//const shuffledData = window.quizData.sort(() => Math.random() - 0.5);
 			// secondo shuffle version
-			shuffledData = fisherYatesShuffle([...window.quizData]);
+			
+			const enableRange = document.getElementById("enableRange").checked;
+			let filteredData = [...window.quizData];
+
+					
+			if (enableRange) {
+				const rangeFrom = parseInt(document.getElementById("rangeFrom").value, 10) || 1;
+				const rangeTo = parseInt(document.getElementById("rangeTo").value, 10) || filteredData.length;
+
+				// Filtra le domande in base al range
+				filteredData = filteredData.filter(item => {
+					const id = parseInt(item.id, 10);
+					return id >= rangeFrom && id <= rangeTo;
+				});
+
+				if (filteredData.length < numQuestions) {
+					alert(`Non ci sono abbastanza domande nel range specificato (${filteredData.length} disponibili).`);
+				}
+			}
+			
+			
+			shuffledData = fisherYatesShuffle([...filteredData]);
 			shuffledData = fisherYatesShuffle([...shuffledData]);
-			shuffledData = fisherYatesShuffle([...shuffledData]);
-			shuffledData = fisherYatesShuffle([...shuffledData]);
-			shuffledData = fisherYatesShuffle([...shuffledData]);
-			shuffledData = fisherYatesShuffle([...shuffledData]);
+			//shuffledData = fisherYatesShuffle([...shuffledData]);
+			//shuffledData = fisherYatesShuffle([...shuffledData]);
+			//shuffledData = fisherYatesShuffle([...shuffledData]);
+			//shuffledData = fisherYatesShuffle([...shuffledData]);
 			//currentQuizData = shuffledData.slice(0, numQuestions); // Aggiorna i dati correnti
 			//index extraction
 			currentQuizData = getRandomQuestions(numQuestions, shuffledData); // Aggiorna i dati correnti
