@@ -187,6 +187,7 @@
       </div>
         <div class="controls">
             <div>
+                <button onclick="generateQuiz()">Genera Esame</button>
                 <label for="numQuestions">Numero di Quesiti:</label>
                 <input id="numQuestions" type="number" min="1" max="50" value="20">
 				<label>
@@ -194,7 +195,12 @@
 				</label>
 				<input id="rangeFrom" type="number" min="1" placeholder="DA" disabled>
 				<input id="rangeTo" type="number" min="1" placeholder="A" disabled>
-                <button onclick="generateQuiz()">Genera Esame</button>
+				<label>
+					<input type="checkbox" id="excludeLastCheck" onchange="toggleExcludeLast()"> Escludi Ultimi 
+				</label>
+				<input id="excludeLast" type="number" min="0" placeholder="" disabled>
+                <label for="numQuestions">Esami</label>
+				<button onclick="clearHistory()">Pulisci Storico</button>
             </div>
             <div>
                 <span id="scoreLabel"></span>
@@ -259,28 +265,34 @@
 			return savedIds;
 		}
 		
+		
+		function toggleExcludeLast() {
+			const enableRange = document.getElementById("excludeLastCheck").checked;
+			document.getElementById("excludeLast").disabled = !enableRange;
+		}
+		
 		function toggleRangeInputs() {
 			const enableRange = document.getElementById("enableRange").checked;
 			document.getElementById("rangeFrom").disabled = !enableRange;
 			document.getElementById("rangeTo").disabled = !enableRange;
 		}
-
-        function generateQuiz() {
 		
+		function clearHistory() {
+			localStorage.removeItem("recentlyExtractedIds");
+			console.log("Storico delle sessioni ripulito.");
+			alert("Storico delle sessioni ripulito con successo!");
+		}
+		
+        function generateQuiz() {
 			const numQuestions = parseInt(document.getElementById("numQuestions").value, 10);
-			//First Shuffeling Version
-			//const shuffledData = window.quizData.sort(() => Math.random() - 0.5);
-			// secondo shuffle version
-			
 			const enableRange = document.getElementById("enableRange").checked;
 			let filteredData = [...window.quizData];
 
-					
+			// Gestione del range DA - A
 			if (enableRange) {
 				const rangeFrom = parseInt(document.getElementById("rangeFrom").value, 10) || 1;
 				const rangeTo = parseInt(document.getElementById("rangeTo").value, 10) || filteredData.length;
 
-				// Filtra le domande in base al range
 				filteredData = filteredData.filter(item => {
 					const id = parseInt(item.id, 10);
 					return id >= rangeFrom && id <= rangeTo;
@@ -290,19 +302,49 @@
 					alert(`Non ci sono abbastanza domande nel range specificato (${filteredData.length} disponibili).`);
 				}
 			}
-			
-			
-			shuffledData = fisherYatesShuffle([...filteredData]);
-			shuffledData = fisherYatesShuffle([...shuffledData]);
-			//shuffledData = fisherYatesShuffle([...shuffledData]);
-			//shuffledData = fisherYatesShuffle([...shuffledData]);
-			//shuffledData = fisherYatesShuffle([...shuffledData]);
-			//shuffledData = fisherYatesShuffle([...shuffledData]);
-			//currentQuizData = shuffledData.slice(0, numQuestions); // Aggiorna i dati correnti
-			//index extraction
-			currentQuizData = getRandomQuestions(numQuestions, shuffledData); // Aggiorna i dati correnti
-			
-			
+
+			const excludeLast = document.getElementById("excludeLastCheck").checked;
+
+			if (excludeLast) {
+				const last = parseInt(document.getElementById("excludeLast").value, 10) || 0;
+
+				if(last>0){
+					// Recupera gli ID delle sessioni salvate
+					const savedIds = JSON.parse(localStorage.getItem("recentlyExtractedIds")) || [];
+
+					// Considera solo le ultime `last` sessioni
+					const recentIds = savedIds.slice(-last); // Prende solo le ultime `last` sessioni
+					const excludedIds = recentIds.flat(); // Unisce gli array delle ultime sessioni
+					console.log("excludedIds:", savedIds);
+					const uniqueExcludedIds = new Set(excludedIds);
+
+					// Filtra le domande per escludere quelle già estratte
+					let availableQuestions = filteredData.filter(item => !uniqueExcludedIds.has(parseInt(item.id, 10)));
+
+					// Controlla se ci sono abbastanza domande disponibili
+					if (availableQuestions.length < numQuestions) {
+						alert(`Non ci sono abbastanza domande disponibili (${availableQuestions.length} rimanenti). Saranno incluse anche domande recenti.`);
+						availableQuestions = filteredData; // Usa tutte le domande
+					}
+
+				filteredData = availableQuestions;
+				}
+			}
+
+			// Shuffle delle domande
+			let shuffledData = fisherYatesShuffle([...filteredData]);
+
+			// Estrai le domande per il quiz
+			currentQuizData = getRandomQuestions(numQuestions, shuffledData);
+
+			// Salva gli ID delle domande estratte
+			const extractedIds = currentQuizData.map(item => parseInt(item.id, 10));
+			const savedIds = JSON.parse(localStorage.getItem("recentlyExtractedIds")) || [];
+			savedIds.push(extractedIds);
+
+			// Salva tutte le sessioni senza limitare il numero
+			localStorage.setItem("recentlyExtractedIds", JSON.stringify(savedIds));
+
 			// Salva gli ID estratti
 			//saveExtractedIds(currentQuizData.map(item => item.id));
 			
@@ -345,10 +387,10 @@
 
             currentQuizData.forEach((item, index) => {
                 [1, 2, 3].forEach(num => {
+				
                     const resultElement = document.getElementById(`result-${index}-${num}`);
                     const selected = document.querySelector(`input[name="answer-${index}-${num}"]:checked`);
                     const correctValue = item[`tf${num}`];
-
                     if (selected) {
                         if (selected.value === correctValue) {
                             resultElement.textContent = "✔";
