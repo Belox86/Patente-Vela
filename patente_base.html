@@ -200,7 +200,7 @@
 				</label>
 				<input id="excludeLast" type="number" min="0" placeholder="" disabled>
                 <label for="numQuestions">Esami</label>
-				<button onclick="clearHistory()">Pulisci Storico</button>
+				<!-- <button onclick="clearHistory()">Pulisci Storico</button> -->
             </div>
             <div>
                 <span id="scoreLabel"></span>
@@ -386,6 +386,7 @@
             const numQuestions = parseInt(document.getElementById("numQuestions").value, 10);
 
             currentQuizData.forEach((item, index) => {
+				let isCorrect=true;
                 [1, 2, 3].forEach(num => {
 				
                     const resultElement = document.getElementById(`result-${index}-${num}`);
@@ -395,19 +396,23 @@
                         if (selected.value === correctValue) {
                             resultElement.textContent = "✔";
                             resultElement.className = "correct";
-                            correctAnswers++;
                         } else {
                             resultElement.textContent = "✘";
                             resultElement.className = "incorrect";
+							isCorrect=false;
                         }
                     } else {
                         resultElement.textContent = "✘";
                         resultElement.className = "incorrect";
+						isCorrect=false;
                     }
                 });
+				if(isCorrect){
+                     correctAnswers++;
+				}
             });
 
-            document.getElementById("scoreLabel").textContent = `Risultati: ${correctAnswers}/${numQuestions * 3} risposte corrette.`;
+            document.getElementById("scoreLabel").textContent = `Risultati: ${correctAnswers}/${numQuestions} risposte corrette.`;
         }
 		
 		document.addEventListener("DOMContentLoaded", generateQuiz);
