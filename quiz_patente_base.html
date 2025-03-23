@@ -132,8 +132,7 @@
 
     #scoreLabel {
         font-weight: bold;
-        font-size: 1.2rem;
-        color: #424242; /* Grigio scuro */
+        color: #2e7d32; /* Verde scuro */
         margin-right: 10px; /* Distanza tra la label e il bottone */
     }
 
@@ -188,32 +187,41 @@
         <div class="controls">
             <div>
                 <button onclick="generateQuiz()">Genera Esame</button>
-                <label for="numQuestions">Numero di Quesiti:</label>
+                <label>&nbsp;&nbsp;&nbsp;&nbsp;</label>
+				
+                <label for="numQuestions"># Quesiti:</label>
                 <input id="numQuestions" type="number" min="1" max="50" value="20">
+                <label>&nbsp;&nbsp;&nbsp;&nbsp;</label>
+				
 				<label>
-					<input type="checkbox" id="enableRange" onchange="toggleRangeInputs()"> Abilita range
+					<input type="checkbox" id="enableRange" onchange="toggleRangeInputs()"> Limita Domande
 				</label>
 				<input id="rangeFrom" type="number" min="1" placeholder="DA" disabled>
 				<input id="rangeTo" type="number" min="1" placeholder="A" disabled>
+                <label>&nbsp;&nbsp;&nbsp;&nbsp;</label>
+				
 				<label>
 					<input type="checkbox" id="excludeLastCheck" onchange="toggleExcludeLast()"> Escludi Ultimi 
 				</label>
 				<input id="excludeLast" type="number" min="0" placeholder="" disabled>
                 <label for="numQuestions">Esami</label>
 				<!-- <button onclick="clearHistory()">Pulisci Storico</button> -->
-            </div>
-            <div>
-                <span id="scoreLabel"></span>
+            
+				<br>
+				<br>
                 <button onclick="checkAnswers()">Verifica Risultati</button>
+                <label>&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <span id="scoreLabel"></span>
             </div>
+		
         </div>
         <table>
             <thead>
                 <tr>
                     <th class="column-id">#</th>
-                    <th class="column-image">Image</th>
-                    <th class="column-question">Question</th>
-                    <th class="column-answers">Answers</th>
+                    <th class="column-image">Immagine</th>
+                    <th class="column-question">Domanda</th>
+                    <th class="column-answers">Risposta</th>
                 </tr>
             </thead>
             <tbody id="quizTableBody"></tbody>
